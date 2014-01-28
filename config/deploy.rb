@@ -60,12 +60,12 @@ namespace :deploy do
        puts Dir.pwd
        begin
           execute :sudo, "mv #{fetch(:NGINX_HOME)}/conf/nginx.conf #{fetch(:NGINX_HOME)}/conf/nginx.conf.last" 
+          execute :sudo, "ln -s #{fetch(:APP_ROOT)}/config/nginx.conf #{fetch(:NGINX_HOME)}/conf/nginx.conf"
+          execute :sudo, "cp -s #{fetch(:APP_ROOT)}/config/cas_server #{fetch(:NGINX_HOME)}/conf/sites-available"
+          execute :sudo, "ln -s #{fetch(:NGINX_HOME)}/conf/sites-available/cas_server #{fetch(:NGINX_HOME)}/conf/sites-enabled"
        rescue Exception => error
          puts "Could not move existing nginx.conf"
        end
-       execute :sudo, "ln -s #{fetch(:APP_ROOT)}/config/nginx.conf #{fetch(:NGINX_HOME)}/conf/nginx.conf"
-       execute :sudo, "cp -s #{fetch(:APP_ROOT)}/config/cas_server #{fetch(:NGINX_HOME)}/conf/sites-available"
-       execute :sudo, "ln -s #{fetch(:NGINX_HOME)}/conf/sites-available/cas_server #{fetch(:NGINX_HOME)}/conf/sites-enabled"
      end
    end
 
