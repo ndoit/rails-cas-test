@@ -1,0 +1,11 @@
+<h1>SignIn#index</h1>
+<p>Find me in app/views/sign_in/index.html.erb</p>
+<%= link_to "Logout", sign_in_logout_path %>
+
+<ul>
+<li>CAS user: <%= session[:cas_user] %></li>
+<li>CAS ticket: <%= session[:cas_pgt] %></li>
+<li><%= debug CASClient::Frameworks::Rails::Filter.client %></li>
+<li><%= debug session %></li>
+</ul>
+
