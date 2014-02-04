@@ -35,15 +35,9 @@ end
 
 namespace :vagrant do
 
-  desc "copy ssl certs for vagrant"
-  task :ssl_certs do
-    on roles(:web) do
-        execute :sudo, "cp /vagrant/ssl/* #{fetch(:NGINX_HOME)}/ssl"
-    end
-  end
 
   task :setup do
-    invoke 'vagrant:ssl_certs'
+    invoke 'deploy:ssl_certs'
     invoke 'deploy:nginx_conf'
     invoke 'deploy:stop_servers'
     invoke 'deploy:start_servers'
@@ -53,6 +47,12 @@ end
 
 namespace :deploy do
 
+  desc "copy ssl certs for vagrant"
+  task :ssl_certs do
+    on roles(:web) do
+        execute :sudo, "cp #{fetch(:APP_ROOT)}/config/ssl/* #{fetch(:NGINX_HOME)}/ssl"
+    end
+  end
 
    desc "set up nginx conf files"
    task :nginx_conf do
