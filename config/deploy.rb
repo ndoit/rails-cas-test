@@ -1,6 +1,8 @@
 set :use_sudo, false
-set :APP_NAME, "cas"
-set :APP_ROOT, "/home/vagrant/cas"
+set :NGINX_CONF_NAME, "cas_server"
+set :GITHUB_SSH, "git@github.com:ndoit/rails-cas-test.git"
+set :APPS_HOME, "/apps"
+set :APP_ROOT, "#{fetch(:APPS_HOME)}/cas"
 set :NGINX_HOME, "/usr/local/openresty/nginx"
 set :CONFIG_DIR, Dir.pwd
 
@@ -33,21 +35,47 @@ namespace :bundle do
 
 end
 
-namespace :vagrant do
 
 
-  task :setup do
+
+namespace :deploy do
+
+  desc "fetch app and configure (move ssl certs, link server configs, etc. then stop/start servers"
+  task :first_time do
+    invoke 'deploy:clean'
+    invoke 'deploy:fetch_app'
+    invoke 'deploy:configure'
+  end
+
+  desc "move ssl certs, link server configs, stop/start servers"
+  task :configure do
     invoke 'deploy:ssl_certs'
     invoke 'deploy:nginx_conf'
+    invoke 'deploy:reload'
+  end
+
+  desc "does a git pull and restarts servers"
+  task :reload do
+    invoke 'deploy:pull_app'
     invoke 'deploy:stop_servers'
     invoke 'deploy:start_servers'
   end
 
-end
+  desc "updates the app to latest master"
+  task :pull_app do
+    on roles(:web) do
+        execute "cd #{fetch(:APP_ROOT)} && git pull"
+    end
+  end
 
-namespace :deploy do
+  desc "fetch app from github"
+  task :fetch_app do
+    on roles(:web) do
+     	execute "cd #{fetch(:APPS_HOME)} && git clone #{fetch(:GITHUB_SSH)} #{fetch(:APP_ROOT)}"
+    end
+  end
 
-  desc "copy ssl certs for vagrant"
+  desc "copy ssl certs (the self-signed ones that come with this app) to nginx config"
   task :ssl_certs do
     on roles(:web) do
         execute :sudo, "cp #{fetch(:APP_ROOT)}/config/ssl/* #{fetch(:NGINX_HOME)}/ssl"
@@ -60,9 +88,19 @@ namespace :deploy do
        puts Dir.pwd
        begin
           execute :sudo, "mv #{fetch(:NGINX_HOME)}/conf/nginx.conf #{fetch(:NGINX_HOME)}/conf/nginx.conf.last" 
+          begin
+              execute :sudo, "unlink #{fetch(:NGINX_HOME)}/conf/nginx.conf"
+          rescue Exception => error
+              puts "error unlinking nginx.conf.  it probably didn't exist"
+          end
           execute :sudo, "ln -s #{fetch(:APP_ROOT)}/config/nginx.conf #{fetch(:NGINX_HOME)}/conf/nginx.conf"
-          execute :sudo, "cp -s #{fetch(:APP_ROOT)}/config/cas_server #{fetch(:NGINX_HOME)}/conf/sites-available"
-          execute :sudo, "ln -s #{fetch(:NGINX_HOME)}/conf/sites-available/cas_server #{fetch(:NGINX_HOME)}/conf/sites-enabled"
+          execute :sudo, "cp -s #{fetch(:APP_ROOT)}/config/#{fetch(:NGINX_CONF_NAME)} #{fetch(:NGINX_HOME)}/conf/sites-available"
+          begin
+              execute :sudo, "unlink #{fetch(:NGINX_HOME)}/conf/sites-enabled/#{fetch(:NGINX_CONF_NAME)}"
+          rescue Exception => error
+              puts "error unlinking app nginx server config.  it probably didn't exist"
+          end
+          execute :sudo, "ln -s #{fetch(:NGINX_HOME)}/conf/sites-available/#{fetch(:NGINX_CONF_NAME)} #{fetch(:NGINX_HOME)}/conf/sites-enabled"
        rescue Exception => error
          puts "Could not move existing nginx.conf"
        end
@@ -78,19 +116,6 @@ namespace :deploy do
         puts "could not delete app.  maybe it doesn't exist yet."
       end 
     end
-  end
-
-  # not properly implemented yet!
-  desc "checks out the app from version control"
-  task :deploy do
-    invoke 'deploy:stop_servers'
-    invoke 'deploy:clean'
-    on roles(:web) do
-      execute "cp -r /home/vagrant/#{fetch(:APP_NAME)} #{fetch(:APP_ROOT)}"
-    end
-    invoke 'deploy:nginx_conf'
-    invoke 'bundle:install'
-    invoke 'deploy:start_servers'
   end
 
   desc "restarts unicorn and nginx"

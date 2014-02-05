@@ -21,7 +21,7 @@ worker_processes 4
 
 # Help ensure your application will always spawn in the symlinked
 # "current" directory that Capistrano sets up.
-working_directory "/home/vagrant/cas" # available in 0.94.0+
+working_directory "/apps/cas" # available in 0.94.0+
 
 # listen on both a Unix domain socket and a TCP port,
 # we use a shorter backlog for quicker failover when busy
@@ -33,13 +33,13 @@ listen 3001, :tcp_nopush => true
 timeout 30
 
 # feel free to point this anywhere accessible on the filesystem
-pid "/home/vagrant/cas/tmp/pid/unicorn.pid"
+pid "/apps/cas/tmp/pid/unicorn.pid"
 
 # By default, the Unicorn logger will write to stderr.
 # Additionally, ome applications/frameworks log to stderr or stdout,
 # so prevent them from going to /dev/null when daemonized here:
-stderr_path "/home/vagrant/cas/log/unicorn.stderr.log"
-stdout_path "/home/vagrant/cas/log/unicorn.stdout.log"
+stderr_path "/apps/cas/log/unicorn.stderr.log"
+stdout_path "/apps/cas/log/unicorn.stdout.log"
 
 # combine Ruby 2.0.0dev or REE with "preload_app true" for memory savings
 # http://rubyenterpriseedition.com/faq.html#adapt_apps_for_cow

@@ -9,7 +9,7 @@ server{
 
 	listen 80;
 	
-	root /home/vagrant/cas/public;
+	root /apps/cas/public;
 	try_files $uri/index.html $uri @redirect;
 	
 	location @redirect{
@@ -25,7 +25,7 @@ server{
 	listen 443 ssl;
         error_log  /tmp/nginx_error.log  warn;
 
-	root /home/vagrant/cas/public;
+	root /apps/cas/public;
 	try_files $uri/index.html $uri @unicorn;
 
 	location @unicorn{
