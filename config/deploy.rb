@@ -35,13 +35,21 @@ namespace :bundle do
 
 end
 
+namespace :database do
 
+   task :migrate do
+     on roles(:web) do
+       execute "cd #{fetch(:APP_ROOT)}/ && rake db:migrate"
+     end
+   end
+end
 
 
 namespace :deploy do
 
   desc "fetch app and configure (move ssl certs, link server configs, etc. then stop/start servers"
   task :first_time do
+    invoke 'deploy:stop_servers'
     invoke 'deploy:clean'
     invoke 'deploy:fetch_app'
     invoke 'deploy:configure'
@@ -51,6 +59,8 @@ namespace :deploy do
   task :configure do
     invoke 'deploy:ssl_certs'
     invoke 'deploy:nginx_conf'
+    invoke 'bundle:install'
+    invoke 'database:migrate'
     invoke 'deploy:reload'
   end
 
