@@ -1,4 +1,5 @@
 set :use_sudo, false
+set :ssh_options, { :forward_agent => true }
 set :NGINX_CONF_NAME, "cas_server"
 set :GITHUB_SSH, "git@github.com:ndoit/rails-cas-test.git"
 set :APPS_HOME, "/apps"
