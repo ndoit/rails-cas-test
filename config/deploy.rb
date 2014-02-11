@@ -1,4 +1,5 @@
 set :use_sudo, false
+set :ssh_options, { :forward_agent => true }
 set :NGINX_CONF_NAME, "cas_server"
 set :GITHUB_SSH, "git@github.com:ndoit/rails-cas-test.git"
 set :APPS_HOME, "/apps"
@@ -88,7 +89,7 @@ namespace :deploy do
   desc "copy ssl certs (the self-signed ones that come with this app) to nginx config"
   task :ssl_certs do
     on roles(:web) do
-        execute :sudo, "cp #{fetch(:APP_ROOT)}/config/ssl/* #{fetch(:NGINX_HOME)}/ssl"
+        execute "cp #{fetch(:APP_ROOT)}/config/ssl/* #{fetch(:NGINX_HOME)}/ssl"
     end
   end
 
@@ -97,20 +98,20 @@ namespace :deploy do
      on roles(:web) do
        puts Dir.pwd
        begin
-          execute :sudo, "mv #{fetch(:NGINX_HOME)}/conf/nginx.conf #{fetch(:NGINX_HOME)}/conf/nginx.conf.last" 
+          execute "mv #{fetch(:NGINX_HOME)}/conf/nginx.conf #{fetch(:NGINX_HOME)}/conf/nginx.conf.last" 
           begin
-              execute :sudo, "unlink #{fetch(:NGINX_HOME)}/conf/nginx.conf"
+              execute "unlink #{fetch(:NGINX_HOME)}/conf/nginx.conf"
           rescue Exception => error
               puts "error unlinking nginx.conf.  it probably didn't exist"
           end
-          execute :sudo, "ln -s #{fetch(:APP_ROOT)}/config/nginx.conf #{fetch(:NGINX_HOME)}/conf/nginx.conf"
-          execute :sudo, "cp -s #{fetch(:APP_ROOT)}/config/#{fetch(:NGINX_CONF_NAME)} #{fetch(:NGINX_HOME)}/conf/sites-available"
+          execute "ln -s #{fetch(:APP_ROOT)}/config/nginx.conf #{fetch(:NGINX_HOME)}/conf/nginx.conf"
+          execute "cp -s #{fetch(:APP_ROOT)}/config/#{fetch(:NGINX_CONF_NAME)} #{fetch(:NGINX_HOME)}/conf/sites-available"
           begin
-              execute :sudo, "unlink #{fetch(:NGINX_HOME)}/conf/sites-enabled/#{fetch(:NGINX_CONF_NAME)}"
+              execute "unlink #{fetch(:NGINX_HOME)}/conf/sites-enabled/#{fetch(:NGINX_CONF_NAME)}"
           rescue Exception => error
               puts "error unlinking app nginx server config.  it probably didn't exist"
           end
-          execute :sudo, "ln -s #{fetch(:NGINX_HOME)}/conf/sites-available/#{fetch(:NGINX_CONF_NAME)} #{fetch(:NGINX_HOME)}/conf/sites-enabled"
+          execute "ln -s #{fetch(:NGINX_HOME)}/conf/sites-available/#{fetch(:NGINX_CONF_NAME)} #{fetch(:NGINX_HOME)}/conf/sites-enabled"
        rescue Exception => error
          puts "Could not move existing nginx.conf"
        end
@@ -152,7 +153,7 @@ namespace :deploy do
     on roles(:web) do
       begin
         puts "stopping nginx (openresty)"
-        execute :sudo, "#{fetch(:NGINX_HOME)}/sbin/nginx -s stop"
+        execute "#{fetch(:NGINX_HOME)}/sbin/nginx -s stop"
       rescue Exception => error 
         puts "error stopping nginx... maybe the servers were not on?"
       end
@@ -179,7 +180,7 @@ namespace :deploy do
   task :start_nginx do
     on roles(:web) do
       puts "starting nginx"
-      execute :sudo, "#{fetch(:NGINX_HOME)}/sbin/nginx"
+      execute "#{fetch(:NGINX_HOME)}/sbin/nginx"
     end
   end
 end
