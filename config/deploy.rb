@@ -180,7 +180,7 @@ namespace :deploy do
   task :start_nginx do
     on roles(:web) do
       puts "starting nginx"
-      execute "#{fetch(:NGINX_HOME)}/sbin/nginx"
+      execute :sudo, "#{fetch(:NGINX_HOME)}/sbin/nginx"
     end
   end
 end
