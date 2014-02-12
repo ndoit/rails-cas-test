@@ -153,7 +153,7 @@ namespace :deploy do
     on roles(:web) do
       begin
         puts "stopping nginx (openresty)"
-        execute "#{fetch(:NGINX_HOME)}/sbin/nginx -s stop"
+        execute :sudo, "#{fetch(:NGINX_HOME)}/sbin/nginx -s stop"
       rescue Exception => error 
         puts "error stopping nginx... maybe the servers were not on?"
       end
